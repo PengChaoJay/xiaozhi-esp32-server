@@ -56,7 +56,7 @@ class ConnectionHandler:
         self.headers = None
         self.client_ip = None
         self.client_ip_info = {}
-        self.session_id = None
+        self.session_id = str(uuid.uuid4())
         self.prompt = None
         self.welcome_msg = None
         self.max_output_size = 0
@@ -117,6 +117,7 @@ class ConnectionHandler:
         try:
             # 获取并验证headers
             self.headers = dict(ws.request.headers)
+            self.headers["device-id"] = self.session_id
 
             if self.headers.get("device-id", None) is None:
                 # 尝试从 URL 的查询参数中获取 device-id
@@ -145,11 +146,13 @@ class ConnectionHandler:
             )
 
             # 进行认证
-            await self.auth.authenticate(self.headers)
+            AStuatus = await self.auth.authenticate(self.headers)
+            print(f"【AStuatus】：",AStuatus )
 
             # 认证通过,继续处理
             self.websocket = ws
-            self.session_id = str(uuid.uuid4())
+            # self.session_id = str(uuid.uuid4())
+            print("【session_id】",self.session_id)
 
             # 启动超时检查任务
             self.timeout_task = asyncio.create_task(self._check_timeout())
@@ -162,17 +165,18 @@ class ConnectionHandler:
             private_config = self._initialize_private_config()
             # 异步初始化
             self.executor.submit(self._initialize_components, private_config)
-            # tts 消化线程
-            self.tts_priority_thread = threading.Thread(
-                target=self._tts_priority_thread, daemon=True
-            )
-            self.tts_priority_thread.start()
+            
+            # # tts 消化线程
+            # self.tts_priority_thread = threading.Thread(
+            #     target=self._tts_priority_thread, daemon=True
+            # )
+            # self.tts_priority_thread.start()
 
-            # 音频播放 消化线程
-            self.audio_play_priority_thread = threading.Thread(
-                target=self._audio_play_priority_thread, daemon=True
-            )
-            self.audio_play_priority_thread.start()
+            # # 音频播放 消化线程
+            # self.audio_play_priority_thread = threading.Thread(
+            #     target=self._audio_play_priority_thread, daemon=True
+            # )
+            # self.audio_play_priority_thread.start()
 
             try:
                 async for message in self.websocket:
@@ -193,7 +197,8 @@ class ConnectionHandler:
     async def _save_and_close(self, ws):
         """保存记忆并关闭连接"""
         try:
-            await self.memory.save_memory(self.dialogue.dialogue)
+            pass
+            # await self.memory.save_memory(self.dialogue.dialogue)
         except Exception as e:
             self.logger.bind(tag=TAG).error(f"保存记忆失败: {e}")
         finally:
