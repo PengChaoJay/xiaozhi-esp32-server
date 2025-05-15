@@ -48,33 +48,13 @@ async def handleAudioMessage(conn, audio):
 
 
 async def startToChat(conn, text):
-    if conn.need_bind:
-        await check_bind_device(conn)
-        return
-
-    # 如果当日的输出字数大于限定的字数
-    if conn.max_output_size > 0:
-        if check_device_output_limit(
-            conn.headers.get("device-id"), conn.max_output_size
-        ):
-            await max_out_size(conn)
-            return
-
-    # 首先进行意图分析
-    intent_handled = await handle_user_intent(conn, text)
-
-    if intent_handled:
-        # 如果意图已被处理，不再进行聊天
-        conn.asr_server_receive = True
-        return
-
-    # 意图未被处理，继续常规聊天流程
+    # if conn.need_bind:
+    #     await check_bind_device(conn)
+    #     return
+    
     await send_stt_message(conn, text)
-    if conn.use_function_call_mode:
-        # 使用支持function calling的聊天方法
-        conn.executor.submit(conn.chat_with_function_calling, text)
-    else:
-        conn.executor.submit(conn.chat, text)
+    conn.clearSpeakStatus()
+
 
 
 async def no_voice_close_connect(conn):

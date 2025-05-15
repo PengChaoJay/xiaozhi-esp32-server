@@ -19,7 +19,8 @@ WAKEUP_CONFIG = {
     "words": ["你好小智", "你好啊小智", "小智你好", "小智"],
     "text": "",
 }
-
+# 这个内容。创建一个session_id 等之类的 
+# 1. 创建多了个连接....，启动一个实例
 
 async def handleHelloMessage(conn):
     await conn.websocket.send(json.dumps(conn.welcome_msg))

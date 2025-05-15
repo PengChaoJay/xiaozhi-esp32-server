@@ -22,6 +22,7 @@ async def handle_user_intent(conn, text):
     if conn.use_function_call_mode:
         # 使用支持function calling的聊天方法,不再进行意图分析
         return False
+    return False
     # 使用LLM进行意图分析
     intent_result = await analyze_intent_with_llm(conn, text)
     if not intent_result:

@@ -45,6 +45,7 @@ class Dialogue:
             self.put(Message(role="system", content=new_content))
 
     def get_llm_dialogue_with_memory(self, memory_str: str = None) -> List[Dict[str, str]]:
+        
         if memory_str is None or len(memory_str) == 0:
             return self.get_llm_dialogue()
         

@@ -13,14 +13,10 @@ class WebSocketServer:
         self.logger = setup_logging()
         self.config_lock = asyncio.Lock()
         modules = initialize_modules(
-            self.logger, self.config, True, True, True, True, True, True
+            self.logger, self.config, True, True,
         )
         self._vad = modules["vad"]
         self._asr = modules["asr"]
-        self._tts = modules["tts"]
-        self._llm = modules["llm"]
-        self._intent = modules["intent"]
-        self._memory = modules["memory"]
         self.active_connections = set()
 
     async def start(self):
@@ -40,10 +36,6 @@ class WebSocketServer:
             self.config,
             self._vad,
             self._asr,
-            self._llm,
-            self._tts,
-            self._memory,
-            self._intent,
             self  # 传入当前 WebSocketServer 实例
         )
         self.active_connections.add(handler)

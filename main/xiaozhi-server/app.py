@@ -37,19 +37,6 @@ async def main():
     # 启动 WebSocket 服务器
     ws_server = WebSocketServer(config)
     ws_task = asyncio.create_task(ws_server.start())
-    ota_task = None
-
-    read_config_from_api = config.get("read_config_from_api", False)
-    if not read_config_from_api:
-        # 启动 Simple OTA 服务器
-        ota_server = SimpleOtaServer(config)
-        ota_task = asyncio.create_task(ota_server.start())
-
-        logger.bind(tag=TAG).info(
-            "OTA接口是\t\thttp://{}:{}/xiaozhi/ota/",
-            get_local_ip(),
-            config["server"]["ota_port"],
-        )
 
     # 获取WebSocket配置，使用安全的默认值
     websocket_port = 8000
@@ -79,12 +66,8 @@ async def main():
         print("任务被取消，清理资源中...")
     finally:
         ws_task.cancel()
-        if ota_task:
-            ota_task.cancel()
         try:
             await ws_task
-            if ota_task:
-                await ota_task
         except asyncio.CancelledError:
             pass
         print("服务器已关闭，程序退出。")

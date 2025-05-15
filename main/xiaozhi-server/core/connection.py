@@ -39,10 +39,10 @@ auto_import_modules("plugins_func.functions")
 class TTSException(RuntimeError):
     pass
 
-
+#  _llm, _tts, _memory, _intent,
 class ConnectionHandler:
     def __init__(
-        self, config: Dict[str, Any], _vad, _asr, _llm, _tts, _memory, _intent, server=None
+        self, config: Dict[str, Any], _vad, _asr, server=None
     ):
         self.config = config
         self.server = server
@@ -75,10 +75,6 @@ class ConnectionHandler:
         # 依赖的组件
         self.vad = _vad
         self.asr = _asr
-        self.llm = _llm
-        self.tts = _tts
-        self.memory = _memory
-        self.intent = _intent
 
         # vad相关变量
         self.client_audio_buffer = bytearray()
@@ -298,9 +294,9 @@ class ConnectionHandler:
             self.prompt = self.config["prompt"]
             self.change_system_prompt(self.prompt)
         """加载记忆"""
-        self._initialize_memory()
+        # self._initialize_memory()
         """加载意图识别"""
-        self._initialize_intent()
+        # self._initialize_intent()
 
     def _initialize_private_config(self):
         read_config_from_api = self.config.get("read_config_from_api", False)
@@ -418,66 +414,6 @@ class ConnectionHandler:
             self.vad = modules["vad"]
         if modules.get("asr", None) is not None:
             self.asr = modules["asr"]
-        if modules.get("llm", None) is not None:
-            self.llm = modules["llm"]
-        if modules.get("intent", None) is not None:
-            self.intent = modules["intent"]
-        if modules.get("memory", None) is not None:
-            self.memory = modules["memory"]
-
-    def _initialize_memory(self):
-        """初始化记忆模块"""
-        device_id = self.headers.get("device-id", None)
-        self.memory.init_memory(device_id, self.llm)
-
-    def _initialize_intent(self):
-        if (
-            self.config["Intent"][self.config["selected_module"]["Intent"]]["type"]
-            == "function_call"
-        ):
-            self.use_function_call_mode = True
-        """初始化意图识别模块"""
-        # 获取意图识别配置
-        intent_config = self.config["Intent"]
-        intent_type = self.config["Intent"][self.config["selected_module"]["Intent"]][
-            "type"
-        ]
-
-        # 如果使用 nointent，直接返回
-        if intent_type == "nointent":
-            return
-        # 使用 intent_llm 模式
-        elif intent_type == "intent_llm":
-            intent_llm_name = intent_config[self.config["selected_module"]["Intent"]][
-                "llm"
-            ]
-
-            if intent_llm_name and intent_llm_name in self.config["LLM"]:
-                # 如果配置了专用LLM，则创建独立的LLM实例
-                from core.utils import llm as llm_utils
-
-                intent_llm_config = self.config["LLM"][intent_llm_name]
-                intent_llm_type = intent_llm_config.get("type", intent_llm_name)
-                intent_llm = llm_utils.create_instance(
-                    intent_llm_type, intent_llm_config
-                )
-                self.logger.bind(tag=TAG).info(
-                    f"为意图识别创建了专用LLM: {intent_llm_name}, 类型: {intent_llm_type}"
-                )
-                self.intent.set_llm(intent_llm)
-            else:
-                # 否则使用主LLM
-                self.intent.set_llm(self.llm)
-                self.logger.bind(tag=TAG).info("使用主LLM作为意图识别模型")
-
-        """加载插件"""
-        self.func_handler = FunctionHandler(self)
-        self.mcp_manager = MCPManager(self)
-
-        """加载MCP工具"""
-        asyncio.run_coroutine_threadsafe(
-            self.mcp_manager.initialize_servers(), self.loop
-        )
 
     def change_system_prompt(self, prompt):
         self.prompt = prompt
@@ -711,14 +647,14 @@ class ConnectionHandler:
                 }
 
                 # 处理MCP工具调用
-                if self.mcp_manager.is_mcp_tool(function_name):
-                    result = self._handle_mcp_tool_call(function_call_data)
-                else:
-                    # 处理系统函数
-                    result = self.func_handler.handle_llm_function_call(
-                        self, function_call_data
-                    )
-                self._handle_function_result(result, function_call_data, text_index + 1)
+                # if self.mcp_manager.is_mcp_tool(function_name):
+                #     result = self._handle_mcp_tool_call(function_call_data)
+                # else:
+                #     # 处理系统函数
+                #     result = self.func_handler.handle_llm_function_call(
+                #         self, function_call_data
+                #     )
+                # self._handle_function_result(result, function_call_data, text_index + 1)
 
         # 处理最后剩余的文本
         full_text = "".join(response_message)
@@ -1003,7 +939,7 @@ class ConnectionHandler:
         """Chat with the user and then close the connection"""
         try:
             # Use the existing chat method
-            self.chat(text)
+            # self.chat(text)
 
             # After chat is complete, close the connection
             self.close_after_chat = True

@@ -345,12 +345,7 @@ def initialize_modules(
             str(config.get("delete_audio", True)).lower() in ("true", "1", "yes"),
         )
         logger.bind(tag=TAG).info(f"初始化组件: asr成功 {select_asr_module}")
-
-    # 初始化自定义prompt
-    if config.get("prompt", None) is not None:
-        modules["prompt"] = config["prompt"]
-        logger.bind(tag=TAG).info(f"初始化组件: prompt成功 {modules['prompt'][:50]}...")
-
+        
     return modules
 
 def analyze_emotion(text):
